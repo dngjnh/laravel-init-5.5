@@ -16,8 +16,14 @@ use Illuminate\Http\Request;
 $api = app(\Dingo\Api\Routing\Router::class);
 
 $api->version('v1', function ($api) {
-    // 获取当前登录者
-    $api->get('/user', function () {
-        return Auth::user();
-    })->middleware('auth:api-combined');
+    // 认证相关
+    $api->group([
+        'prefix' => '/auth',
+    ], function ($api) {
+        // 退出登录
+        $api->put('/logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
+
+        // 当前登录者信息
+        $api->get('/me', 'App\Http\Controllers\Api\V1\AuthController@me');
+    });
 });
