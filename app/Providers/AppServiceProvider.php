@@ -13,6 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        \App\Models\Permission::observe(\App\Observers\PermissionObserver::class);
+        \App\Models\Role::observe(\App\Observers\RoleObserver::class);
         \App\Models\User::observe(\App\Observers\UserObserver::class);
     }
 

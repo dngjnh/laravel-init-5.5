@@ -23,6 +23,8 @@ class UserUpdateRequest extends ApiRequest
                 Rule::unique('users', 'email')->ignore($this->user),
             ],
             'password' => 'required|string|min:6|max:15',
+            'roles' => 'sometimes|nullable|array',
+            'roles.*' => 'required|string|exists:roles,name',
         ];
     }
 
@@ -37,6 +39,8 @@ class UserUpdateRequest extends ApiRequest
             'name' => '昵称',
             'email' => '邮箱',
             'password' => '密码',
+            'roles' => '角色名称集合',
+            'roles.*' => '角色名称',
         ];
     }
 }

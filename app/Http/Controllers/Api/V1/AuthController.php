@@ -47,4 +47,30 @@ class AuthController extends Controller
 
         return $this->response->array($user->toArray());
     }
+
+    /**
+     * 关联的角色
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function roles()
+    {
+        $user = Auth::user();
+        $roles = $user->roles;
+
+        return $this->response->array($roles->toArray());
+    }
+
+    /**
+     * 关联的权限
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function permissions()
+    {
+        $user = Auth::user();
+        $permissions = $user->getAllPermissions()->sortBy('name')->values();
+
+        return $this->response->array($permissions->toArray());
+    }
 }

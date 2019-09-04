@@ -4,16 +4,16 @@ namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Api\ApiController as Controller;
-use App\Http\Requests\Api\V1\UserStoreRequest;
-use App\Http\Requests\Api\V1\UserUpdateRequest;
-use App\Models\User;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\V1\RoleStoreRequest;
+use App\Http\Requests\Api\V1\RoleUpdateRequest;
+use App\Models\Role;
 use Exception;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Dingo\Api\Exception\UpdateResourceFailedException;
 use Dingo\Api\Exception\DeleteResourceFailedException;
 
-class UserController extends Controller
+class RoleController extends ApiController
 {
     public function __construct()
     {
@@ -29,42 +29,36 @@ class UserController extends Controller
      */
     public function index()
     {
-        $this->authorize('index', User::class);
+        $this->authorize('index', Role::class);
 
-        $users = User::forList(
-            [],
-            [
-                'users.id',
-                'users.name',
-                'users.email',
-                'users.created_at',
-                'users.updated_at',
-            ]
-        );
+        $roles = Role::forList();
 
-        return $this->response->array($users->toArray());
+        return $this->response->array($roles->toArray());
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\Api\V1\UserStoreRequest  $request
+     * @param  \App\Http\Requests\Api\V1\RoleStoreRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(UserStoreRequest $request)
+    public function store(RoleStoreRequest $request)
     {
-        $this->authorize('store', User::class);
+        $this->authorize('store', Role::class);
 
         DB::beginTransaction();
         try {
 
-            // 创建用户
-            $data = $request->except(['roles']);
-            $data['password'] = bcrypt($data['password']);
-            $user = User::create($data);
+            // 创建角色
+            $data = $request->only([
+                'name',
+                'description',
+            ]);
+            $data['guard_name'] = 'api';
+            $role = Role::create($data);
 
-            // 更新角色
-            $user->syncRolesWithChecking($request->input('roles'));
+            // 更新权限
+            $role->syncPermissionsWithChecking($request->input('permissions'));
 
             DB::commit();
         } catch (Exception $e) {
@@ -83,49 +77,44 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::forList(
+        $role = Role::forList(
             $id,
-            [
-                'users.id',
-                'users.name',
-                'users.email',
-                'users.created_at',
-                'users.updated_at',
-            ],
+            ['*'],
             [],
             [
-                'roles',
+                'permissions',
             ]
         )->first();
 
-        $this->authorize('show', $user);
+        $this->authorize('show', $role);
 
-        return $this->response->array($user->toArray());
+        return $this->response->array($role->toArray());
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\Api\V1\UserUpdateRequest  $request
+     * @param  \App\Http\Requests\Api\V1\RoleUpdateRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UserUpdateRequest $request, $id)
+    public function update(RoleUpdateRequest $request, $id)
     {
-        $user = User::find($id);
+        $role = Role::find($id);
 
-        $this->authorize('update', $user);
+        $this->authorize('update', $role);
 
         DB::beginTransaction();
         try {
 
-            // 更新用户
-            $data = $request->input();
-            $data['password'] = bcrypt($data['password']);
-            $user->update($data);
-
             // 更新角色
-            $user->syncRolesWithChecking($request->input('roles'));
+            $role->update($request->only([
+                'name',
+                'description',
+            ]));
+
+            // 更新权限
+            $role->syncPermissionsWithChecking($request->input('permissions'));
 
             DB::commit();
         } catch (Exception $e) {
@@ -144,14 +133,14 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::find($id);
+        $role = Role::find($id);
 
-        $this->authorize('destroy', $user);
+        $this->authorize('destroy', $role);
 
         DB::beginTransaction();
         try {
 
-            $user->delete();
+            $role->delete();
 
             DB::commit();
         } catch (Exception $e) {

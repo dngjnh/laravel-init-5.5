@@ -25,7 +25,29 @@ $api->version('v1', function ($api) {
 
         // 当前登录者信息
         $api->get('/me', 'App\Http\Controllers\Api\V1\AuthController@me');
+
+        // 关联的角色
+        $api->get('/roles', 'App\Http\Controllers\Api\V1\AuthController@roles');
+
+        // 关联的权限
+        $api->get('/permissions', 'App\Http\Controllers\Api\V1\AuthController@permissions');
     });
+
+    // 权限
+    $api->resource('/permissions', 'App\Http\Controllers\Api\V1\PermissionController', ['only' => [
+        'index',
+        'show',
+        'update',
+    ]]);
+
+    // 角色
+    $api->resource('/roles', 'App\Http\Controllers\Api\V1\RoleController', ['only' => [
+        'index',
+        'store',
+        'show',
+        'update',
+        'destroy',
+    ]]);
 
     // 用户
     $api->resource('/users', 'App\Http\Controllers\Api\V1\UserController', ['only' => [
