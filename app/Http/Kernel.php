@@ -42,6 +42,15 @@ class Kernel extends HttpKernel
             'throttle:60,1',
             'bindings',
         ],
+
+        // Convenience group containing the auth middleware for Passport and
+        // Dingo so that the custom 'App\Providers\PassportDingoAuthProvider'
+        // can bridge the auth systems:
+        // api.auth 和 auth:api 的顺序很重要
+        'auth:api-combined' => [
+            'api.auth', // Dingo
+            'auth:api', // Passport
+        ],
     ];
 
     /**

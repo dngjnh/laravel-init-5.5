@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+$api = app(\Dingo\Api\Routing\Router::class);
+
+$api->version('v1', function ($api) {
+    // 获取当前登录者
+    $api->get('/user', function () {
+        return Auth::user();
+    })->middleware('auth:api-combined');
 });
