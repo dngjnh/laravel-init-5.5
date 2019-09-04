@@ -26,4 +26,13 @@ $api->version('v1', function ($api) {
         // 当前登录者信息
         $api->get('/me', 'App\Http\Controllers\Api\V1\AuthController@me');
     });
+
+    // 用户
+    $api->resource('/users', 'App\Http\Controllers\Api\V1\UserController', ['only' => [
+        'index',
+        'store',
+        'show',
+        'update',
+        'destroy',
+    ]]);
 });
