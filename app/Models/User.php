@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -29,4 +30,16 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * 为 Passport 获取用户实例
+     * 默认 email 字段
+     *
+     * @param string $username
+     * @return object
+     */
+    // public function findForPassport(string $username)
+    // {
+    //     return $this->where('email', $username)->first();
+    // }
 }
