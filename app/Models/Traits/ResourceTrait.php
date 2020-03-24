@@ -18,9 +18,11 @@ trait ResourceTrait
      *                                  callable,
      *                              ]
      * @param array $withs
+     * @param array $orders
+     * @param array $groups
      * @return object
      */
-    public function scopeForList($query, $where = [], $columns = ['*'], $joins = [], $withs = [])
+    public function scopeForList($query, $where = [], $columns = ['*'], $joins = [], $withs = [], $orders = [], $groups = [])
     {
         $this->applyLocalScopes($query);
 
@@ -43,6 +45,18 @@ trait ResourceTrait
             $query->where($model->getQualifiedKeyName(), '=', $where);
         }
 
+        if (empty($orders)) {
+            $query->orderBy($model->getQualifiedKeyName(), 'desc');
+        } else {
+            foreach ($orders as $ok => $order) {
+                $query->orderBy($order[0], $order[1]);
+            }
+        }
+
+        if (!empty($groups)) {
+            $query->groupBy($groups);
+        }
+
         if (!is_array($where) || empty(request('page'))) {
             return $query->get();
         } else {
@@ -57,6 +71,7 @@ trait ResourceTrait
      */
     protected function applyLocalScopes(&$query)
     {
+        //
     }
 
     /**
@@ -78,10 +93,10 @@ trait ResourceTrait
                 $columnName = $tableName . '.' . $rk;
                 if (is_null($rv)) {
                     $query->nullColumn($columnName);
-                } else if (is_numeric($rv)) {
-                    $where[] = [$columnName, '=', $rv];
+                } else if (mb_substr($rv, 0, 1) == '%' && mb_substr($rv, -1, 1) == '%') {
+                    $where[] = [$columnName, 'LIKE', $rv];
                 } else {
-                    $where[] = [$columnName, 'like', '%' . $rv . '%'];
+                    $where[] = [$columnName, '=', $rv];
                 }
             }
         }
