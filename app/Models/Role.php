@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Spatie\Permission\Models\Role as Model;
-use App\Models\Traits\ResourceTrait;
+use Dngjnh\LaravelUtility\Traits\ModelResourceTrait;
 use Exception;
 
 class Role extends Model
 {
-    use ResourceTrait;
+    use ModelResourceTrait;
 
     /**
      * The attributes that should be cast to native types.

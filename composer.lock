@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6b92b37e3843d4a22ac65baf2967181",
+    "content-hash": "11f4aad666df53f0648b40fc2fe76260",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -331,6 +331,48 @@
                 "laravel"
             ],
             "time": "2017-12-05T12:02:08+00:00"
+        },
+        {
+            "name": "dngjnh/laravel-utility",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dngjnh/laravel-utility.git",
+                "reference": "9e9756f55fc841ac43a6d1b1e7f6a8b04f77f444"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dngjnh/laravel-utility/zipball/9e9756f55fc841ac43a6d1b1e7f6a8b04f77f444",
+                "reference": "9e9756f55fc841ac43a6d1b1e7f6a8b04f77f444",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "require": {
+                "laravel/framework": "~5.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Dngjnh\\LaravelUtility\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "dngjnh",
+                    "email": "dngjnh@foxmail.com"
+                }
+            ],
+            "description": "Laravel 框架的实用工具",
+            "time": "2020-03-24T14:57:48+00:00"
         },
         {
             "name": "dnoegel/php-xdg-base-dir",

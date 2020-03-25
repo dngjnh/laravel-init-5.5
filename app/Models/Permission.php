@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Spatie\Permission\Models\Permission as Model;
-use App\Models\Traits\ResourceTrait;
+use Dngjnh\LaravelUtility\Traits\ModelResourceTrait;
 
 class Permission extends Model
 {
-    use ResourceTrait;
+    use ModelResourceTrait;
 
     /**
      * The attributes that should be cast to native types.

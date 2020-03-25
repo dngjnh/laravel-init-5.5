@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
-use App\Models\Traits\ResourceTrait;
+use Dngjnh\LaravelUtility\Traits\ModelResourceTrait;
 use Spatie\Permission\Traits\HasRoles;
 use Exception;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasApiTokens, ResourceTrait, HasRoles;
+    use Notifiable, HasApiTokens, ModelResourceTrait, HasRoles;
 
     protected $guard_name = 'api';
 
