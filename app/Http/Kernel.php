@@ -48,8 +48,8 @@ class Kernel extends HttpKernel
         // can bridge the auth systems:
         // api.auth 和 auth:api 的顺序很重要
         'auth:api-combined' => [
-            'api.auth', // Dingo
-            'auth:api', // Passport
+            'api.auth', // Dingo，身份验证
+            // 'auth:api', // Passport，使框架的自带方法生效，如 `Auth::user()`
         ],
     ];
 

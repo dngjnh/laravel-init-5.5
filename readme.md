@@ -292,19 +292,59 @@
    ],
    ```
 
-7. 在 `app\Models\User.php` 中新增方法，定义 Passport 获取用户实例所用的默认字段
+7. 在 `app\Models\User.php` 中新增方法，自定义 Passport 获取用户实例所用的默认字段和错误提示信息
 
    ```php
-   /**
-    * 为 Passport 获取用户实例
-    * 默认 email 字段
-    *
-    * @param string $username
-    * @return object
-    */
-   public function findForPassport(string $username)
+   <?php
+   
+   namespace App\Models;
+   
+   // ...
+   use League\OAuth2\Server\Exception\OAuthServerException;
+   
+   class User extends Authenticatable
    {
-       return $this->where('email', $username)->first();
+       // ...
+       use HasApiTokens;
+       // ...
+       /**
+        * 为 Passport 获取用户实例
+        * 默认 email 字段
+        *
+        * @param string $username
+        * @return object
+        */
+       public function findForPassport(string $username)
+       {
+           $user = $this->where('email', $username)->first();
+           if (empty($user)) {
+               throw new OAuthServerException('用户不存在', 6, 'invalid_username', 401);
+           }
+   
+           return $user;
+       }
+   
+       /**
+        * 为 Passport 验证用户是否有效
+        *
+        * @param string $password
+        * @return true
+        * @throws \Exception
+        */
+       public function validateForPassportPasswordGrant($password)
+       {
+           $hasher = app(\Illuminate\Contracts\Hashing\Hasher::class);
+           if (!$hasher->check($password, $this->getAuthPassword())) {
+               throw new OAuthServerException('密码不正确', 6, 'incorrect_password', 401);
+           }
+   
+           // if ($this->id != 1 && $this->user_status_id != 1) {
+           //     throw new OAuthServerException('用户状态异常，请联系管理员', 6, 'abnormal_status', 401);
+           // }
+   
+           return true;
+       }
+       // ...
    }
    ```
 
@@ -491,8 +531,10 @@
 1. 安装 `dingo/api` 包
 
    ```bash
-   $ composer require dingo/api
+   $ composer require dingo/api:2.2.3
    ```
+
+   目前只能安装 2.2.3 版本，否则表单验证通过后会[报错](https://github.com/dingo/api/commit/37744e2093ffac8dff7918e7c98eebfc67fba337)：`Method validateResolved does not exist.`。
 
 2. 发布和配置 `config/api.php`
 
@@ -510,15 +552,15 @@
 
    ```php
    <?php
-
+   
    namespace App\Providers;
-
+   
    use Dingo\Api\Contract\Auth\Provider as ServiceProvider;
    use Dingo\Api\Routing\Route;
    use Illuminate\Auth\AuthManager;
    use Illuminate\Http\Request;
    use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
-
+   
    class DingoAuthPassportServiceProvider implements ServiceProvider
    {
        /**
@@ -528,7 +570,7 @@
         * @var Illuminate\Contracts\Auth\Guard
         */
        protected $guard;
-
+   
        /**
         * Create a new instance using the Guard implementation configured for
         * Passport.
@@ -541,7 +583,7 @@
            // for API requests that uses the "passport" driver:
            $this->guard = $auth->guard('api');
        }
-
+   
        /**
         * Authenticate the request and return the authenticated user instance.
         *
@@ -555,7 +597,7 @@
            if ($this->guard->check()) {
                return $this->guard->user();
            }
-
+   
            throw new UnauthorizedHttpException('Not authenticated via Passport.', '授权无效，请重新登录');
        }
    }
@@ -597,7 +639,7 @@
    ```php
    <?php
    $api = app(\Dingo\Api\Routing\Router::class);
-
+   
    $api->version('v1', function ($api) {
        // 获取当前登录者
        $api->get('/user', function () {
@@ -612,13 +654,13 @@
 
    ```php
    <?php
-
+   
    namespace App\Http\Controllers\Api;
-
+   
    use App\Http\Controllers\Controller;
    use Dingo\Api\Routing\Helpers;
    use Illuminate\Http\Request;
-
+   
    class ApiController extends Controller
    {
        use Helpers;
@@ -631,12 +673,12 @@
 
    ```php
    <?php
-
+   
    namespace App\Providers;
-
+   
    use Illuminate\Support\ServiceProvider;
    use Dingo\Api\Exception\Handler;
-
+   
    class DingoApiServiceProvider extends ServiceProvider
    {
        /**
@@ -648,7 +690,7 @@
        {
            //
        }
-
+   
        /**
         * Register the application services.
         *
@@ -678,9 +720,9 @@
 
    ```php
    <?php
-
+   
    use Illuminate\Http\Request;
-
+   
    /*
    |--------------------------------------------------------------------------
    | API Routes
@@ -691,9 +733,9 @@
    | is assigned the "api" middleware group. Enjoy building your API!
    |
    */
-
+   
    $api = app(\Dingo\Api\Routing\Router::class);
-
+   
    $api->version('v1', function ($api) {
        // 认证相关
        $api->group([
@@ -701,7 +743,7 @@
        ], function ($api) {
            // 退出登录
            $api->put('/logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
-
+   
            // 当前登录者信息
            $api->get('/me', 'App\Http\Controllers\Api\V1\AuthController@me');
        });
@@ -712,14 +754,14 @@
 
    ```php
    <?php
-
+   
    namespace App\Http\Controllers\Api\V1;
-
+   
    use Illuminate\Http\Request;
    use Illuminate\Support\Facades\Auth;
    use App\Http\Controllers\Api\ApiController as Controller;
    use App\Models\OauthAccessToken;
-
+   
    class AuthController extends Controller
    {
        public function __construct()
@@ -728,7 +770,7 @@
                //
            ]]);
        }
-
+   
        /**
         * 退出登录
         *
@@ -738,17 +780,17 @@
        {
            $user = Auth::user();
            $token = $user->token();
-
+   
            // 删除 access_token
            OauthAccessToken::where('user_id', '=', $token->user_id)
                ->where('client_id', '=', $token->client_id)
                ->update([
                    'revoked' => true,
                ]);
-
+   
            return $this->response->noContent();
        }
-
+   
        /**
         * 当前登录者信息
         *
@@ -757,7 +799,7 @@
        public function me()
        {
            $user = Auth::user();
-
+   
            return $this->response->array($user->toArray());
        }
    }
@@ -1697,10 +1739,36 @@ class UserController extends Controller
         * @param string $username
         * @return object
         */
-       // public function findForPassport(string $username)
-       // {
-       //     return $this->where('email', $username)->first();
-       // }
+       public function findForPassport(string $username)
+       {
+           $user = $this->where('email', $username)->first();
+           if (empty($user)) {
+               throw new OAuthServerException('用户不存在', 6, 'invalid_username', 401);
+           }
+
+           return $user;
+       }
+
+       /**
+        * 为 Passport 验证用户是否有效
+        *
+        * @param string $password
+        * @return true
+        * @throws \Exception
+        */
+       public function validateForPassportPasswordGrant($password)
+       {
+           $hasher = app(\Illuminate\Contracts\Hashing\Hasher::class);
+           if (!$hasher->check($password, $this->getAuthPassword())) {
+               throw new OAuthServerException('密码不正确', 6, 'incorrect_password', 401);
+           }
+
+           // if ($this->id != 1 && $this->user_status_id != 1) {
+           //     throw new OAuthServerException('用户状态异常，请联系管理员', 6, 'abnormal_status', 401);
+           // }
+
+           return true;
+       }
 
        /**
         * 更新角色
