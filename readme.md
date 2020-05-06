@@ -1,4 +1,4 @@
-# Laravel Startup
+# Laravel Init 5.5
 
 ## 目录
 
@@ -6,7 +6,7 @@
 
 ## 简介
 
-整合了大多数项目通用功能的 Laravel 初始项目，用于快速安装、接入具体业务。
+整合了大多数项目通用功能的 Laravel 5.5 初始项目，用于快速安装、接入具体业务。
 
 - 用户认证使用 `laravel/passport`
 - 接口开发使用 `dingo/api`
